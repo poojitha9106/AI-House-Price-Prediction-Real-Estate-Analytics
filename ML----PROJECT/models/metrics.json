@@ -1,0 +1,29 @@
+{
+    "best_model": "Gradient Boosting",
+    "model_comparison": {
+        "Linear Regression": {
+            "MAE": 5537588.08,
+            "MSE": 70265637223505.34,
+            "RMSE": 8382460.09,
+            "R2_Score": 0.8524
+        },
+        "Ridge Regression": {
+            "MAE": 5527782.31,
+            "MSE": 70376340197756.98,
+            "RMSE": 8389060.75,
+            "R2_Score": 0.8522
+        },
+        "Random Forest": {
+            "MAE": 2440245.01,
+            "MSE": 16435938543133.57,
+            "RMSE": 4054126.11,
+            "R2_Score": 0.9655
+        },
+        "Gradient Boosting": {
+            "MAE": 1726518.86,
+            "MSE": 8074858690228.08,
+            "RMSE": 2841629.58,
+            "R2_Score": 0.983
+        }
+    }
+}

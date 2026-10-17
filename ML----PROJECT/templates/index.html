@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian House Price Prediction | AI Real Estate Valuation</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for ML Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="glow-bg"></div>
+
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-house-circle-check logo-icon"></i>
+            <span class="logo-text">House Price Prediction <span class="badge-ai">India Edition</span></span>
+        </div>
+        <nav class="nav-links">
+            <button class="nav-btn active" id="nav-predict-btn" onclick="switchTab('calculator')">
+                <i class="fa-solid fa-calculator"></i> Price Estimator
+            </button>
+            <button class="nav-btn" id="nav-dashboard-btn" onclick="switchTab('dashboard')">
+                <i class="fa-solid fa-chart-pie"></i> ML Dashboard
+            </button>
+            <button class="nav-btn" id="nav-compare-btn" onclick="switchTab('compare')">
+                <i class="fa-solid fa-code-compare"></i> Compare Properties
+            </button>
+            <button class="nav-btn" id="nav-metrics-btn" onclick="switchTab('metrics')">
+                <i class="fa-solid fa-chart-line"></i> Model Comparison
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        
+        <!-- PRICE ESTIMATOR SECTION -->
+        <section id="calculator-section" class="tab-content active">
+            <div class="hero-header">
+                <h1>Indian Real Estate Valuation</h1>
+                <p>Select real Indian cities, towns, or villages with area in Square Yards (Gaj) to compute accurate ML valuations.</p>
+            </div>
+
+            <div class="calculator-grid">
+                <!-- Input Form Card -->
+                <div class="glass-card form-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <h2>Property Specifications</h2>
+                    </div>
+
+                    <form id="prediction-form" onsubmit="handlePrediction(event)">
+                        
+                        <!-- City / Village Location Dropdown -->
+                        <div class="form-group">
+                            <label for="city_village"><i class="fa-solid fa-location-dot"></i> City / Village Location</label>
+                            <select id="city_village" name="city_village" required>
+                                <optgroup label="Metros & High-Growth IT Corridors">
+                                    <option value="Bengaluru - Indiranagar">Bengaluru - Indiranagar (KA)</option>
+                                    <option value="Mumbai - Bandra West" selected>Mumbai - Bandra West (MH)</option>
+                                    <option value="Delhi - Vasant Kunj">Delhi - Vasant Kunj (NCR)</option>
+                                    <option value="Gurugram - Golf Course Rd">Gurugram - Golf Course Rd (HR)</option>
+                                    <option value="Hyderabad - Gachibowli">Hyderabad - Gachibowli (TS)</option>
+                                    <option value="Pune - Baner">Pune - Baner (MH)</option>
+                                </optgroup>
+                                <optgroup label="Tier-2 & Tier-3 Cities">
+                                    <option value="Chandigarh - Sector 17">Chandigarh - Sector 17</option>
+                                    <option value="Ahmedabad - Bodakdev">Ahmedabad - Bodakdev (GJ)</option>
+                                    <option value="Jaipur - Vaishali Nagar">Jaipur - Vaishali Nagar (RJ)</option>
+                                    <option value="Kochi - Edappally">Kochi - Edappally (KL)</option>
+                                    <option value="Lucknow - Gomti Nagar">Lucknow - Gomti Nagar (UP)</option>
+                                </optgroup>
+                                <optgroup label="Towns & Rural Villages">
+                                    <option value="Baramati Town (MH)">Baramati Town (Maharashtra)</option>
+                                    <option value="Rampur (UP)">Rampur (Uttar Pradesh)</option>
+                                    <option value="Palampur Village (HP)">Palampur Village (Himachal Pradesh)</option>
+                                    <option value="Mandya Village (KA)">Mandya Village (Karnataka)</option>
+                                    <option value="Wayanad Village (KL)">Wayanad Village (Kerala)</option>
+                                    <option value="Anakapalle (AP)">Anakapalle (Andhra Pradesh)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- Area in Square Yards (Gaj) & Square Feet -->
+                        <div class="form-group">
+                            <div class="label-with-val">
+                                <label for="area_sqyards"><i class="fa-solid fa-ruler-combined"></i> Plot / Land Area in Square Yards (Gaj)</label>
+                                <span class="range-val" id="area-val-disp">200 Gaj (1,800 sq ft)</span>
+                            </div>
+                            <input type="range" id="area_sqyards" name="area_sqyards" min="50" max="650" step="5" value="200" oninput="updateAreaDisp(this.value)">
+                            <div class="area-subtext">
+                                <small><i class="fa-solid fa-calculator"></i> 1 Square Yard (Gaj) = 9 Square Feet. Equivalent Area: <strong id="sqft-equiv">1,800 sq ft</strong></small>
+                            </div>
+                        </div>
+
+                        <!-- Bedrooms & Bathrooms Grid -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bedrooms"><i class="fa-solid fa-bed"></i> Bedrooms (BHK)</label>
+                                <select id="bedrooms" name="bedrooms" required>
+                                    <option value="1">1 BHK (1 Bedroom)</option>
+                                    <option value="2">2 BHK (2 Bedrooms)</option>
+                                    <option value="3" selected>3 BHK (3 Bedrooms)</option>
+                                    <option value="4">4 BHK (4 Bedrooms)</option>
+                                    <option value="5">5+ BHK (Luxury)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="bathrooms"><i class="fa-solid fa-bath"></i> Bathrooms</label>
+                                <select id="bathrooms" name="bathrooms" required>
+                                    <option value="1.0">1 Bathroom</option>
+                                    <option value="2.0">2 Bathrooms</option>
+                                    <option value="3.0" selected>3 Bathrooms</option>
+                                    <option value="4.0">4 Bathrooms</option>
+                                    <option value="5.0">5+ Bathrooms</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Floors & Year Built Grid -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="floors"><i class="fa-solid fa-layer-group"></i> Total Stories / Floors</label>
+                                <select id="floors" name="floors" required>
+                                    <option value="1">1 Story (Independent)</option>
+                                    <option value="2" selected>2 Stories (Duplex)</option>
+                                    <option value="3">3 Stories</option>
+                                    <option value="4">4+ Stories</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year_built"><i class="fa-solid fa-calendar-days"></i> Construction Year</label>
+                                <input type="number" id="year_built" name="year_built" min="1960" max="2026" value="2021" required>
+                            </div>
+                        </div>
+
+                        <!-- Parking & House Condition Grid -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="parking"><i class="fa-solid fa-square-parking"></i> Parking Facility</label>
+                                <select id="parking" name="parking" required>
+                                    <option value="None">No Dedicated Parking</option>
+                                    <option value="Two-Wheeler Only">Two-Wheeler Only</option>
+                                    <option value="Covered Car Park" selected>Covered Car Park</option>
+                                    <option value="Private Multi-Car Garage">Private Multi-Car Garage</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="condition"><i class="fa-solid fa-gem"></i> Property Condition</label>
+                                <select id="condition" name="condition" required>
+                                    <option value="Fixer-Upper / Old">Fixer-Upper / Old</option>
+                                    <option value="Standard / Semi-Furnished">Standard / Semi-Furnished</option>
+                                    <option value="Good / Well Maintained">Good / Well Maintained</option>
+                                    <option value="Fully Furnished / Renovated" selected>Fully Furnished / Renovated</option>
+                                    <option value="Luxury Villa / Ultra-Modern">Luxury Villa / Ultra-Modern</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="submit-btn">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Predict House Price
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Valuation Result Card -->
+                <div class="glass-card result-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <h2>Valuation Estimate</h2>
+                    </div>
+
+                    <div id="result-placeholder" class="result-placeholder">
+                        <i class="fa-solid fa-house-flag placeholder-icon"></i>
+                        <p>Select your Indian city/village, enter Square Yards (Gaj) and bedrooms, then click <strong>Predict House Price</strong>.</p>
+                    </div>
+
+                    <div id="result-content" class="result-content hidden">
+                        <div class="price-header">
+                            <span class="price-label">Estimated Market Valuation</span>
+                            <div class="price-words" id="predicted-price-words">₹0</div>
+                            <div class="price-display" id="predicted-price-display">₹0</div>
+                            <span class="model-badge" id="used-model-badge">Gradient Boosting (98.3% Accuracy)</span>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-box">
+                                <span class="metric-title"><i class="fa-solid fa-ruler"></i> Rate per Sq.Yard (Gaj)</span>
+                                <span class="metric-value" id="price-sqyd-display">₹0/sq.yd</span>
+                            </div>
+                            <div class="metric-box">
+                                <span class="metric-title"><i class="fa-solid fa-border-all"></i> Rate per Sq.Foot</span>
+                                <span class="metric-value" id="price-sqft-display">₹0/sq.ft</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-box margin-top-1">
+                            <span class="metric-title"><i class="fa-solid fa-arrows-left-right"></i> Est. Valuation Confidence Range</span>
+                            <span class="metric-value" id="price-range-display">₹0 - ₹0</span>
+                        </div>
+
+                        <div class="summary-box">
+                            <h4><i class="fa-solid fa-list-check"></i> Property Summary Breakdown</h4>
+                            <div class="summary-chips" id="summary-chips"></div>
+                        </div>
+
+                        <!-- AI-Style "Explain My Prediction" Feature Card -->
+                        <div class="ai-explain-card margin-top-1">
+                            <div class="ai-explain-header">
+                                <div class="ai-badge"><i class="fa-solid fa-brain"></i> AI Explanation</div>
+                                <h3>Why was this price estimated?</h3>
+                            </div>
+                            
+                            <!-- Short Natural Language Explanation -->
+                            <div class="ai-narrative-box">
+                                <i class="fa-solid fa-quote-left quote-icon"></i>
+                                <p class="ai-narrative" id="ai-narrative-text">
+                                    Analyzing feature contributions based on the trained Gradient Boosting model...
+                                </p>
+                            </div>
+
+                            <!-- Feature Drivers Split Grid -->
+                            <div class="xai-drivers-grid">
+                                <!-- Positive / Increasing Factors -->
+                                <div class="driver-box driver-positive">
+                                    <div class="driver-header">
+                                        <i class="fa-solid fa-arrow-trend-up"></i>
+                                        <span>Factors Increasing Price</span>
+                                    </div>
+                                    <div class="driver-items" id="positive-factors-list">
+                                        <!-- Dynamically injected -->
+                                    </div>
+                                </div>
+
+                                <!-- Negative / Decreasing Factors -->
+                                <div class="driver-box driver-negative">
+                                    <div class="driver-header">
+                                        <i class="fa-solid fa-arrow-trend-down"></i>
+                                        <span>Factors Decreasing Price</span>
+                                    </div>
+                                    <div class="driver-items" id="negative-factors-list">
+                                        <!-- Dynamically injected -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div id="error-alert" class="alert alert-error hidden">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="error-message">Error processing prediction.</span>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+<!-- COMPARE PROPERTIES SECTION -->
+<section id="compare-section" class="tab-content hidden">
+    <div class="hero-header">
+        <h1>Compare Up to Three Properties</h1>
+        <p>Select any two or three properties to compare side‑by‑side price estimates.</p>
+    </div>
+    <!-- Selection checkboxes -->
+    <div class="compare-select">
+        <label><input type="checkbox" id="compare-check-1" checked> Property 1</label>
+        <label><input type="checkbox" id="compare-check-2" checked> Property 2</label>
+        <label><input type="checkbox" id="compare-check-3" checked> Property 3</label>
+    </div>
+    <div class="compare-grid">
+        <!-- Property 1 Form -->
+        <div class="glass-card form-card">
+            <div class="card-title"><i class="fa-solid fa-home"></i><h2>Property 1</h2></div>
+            <form class="compare-form" id="compare-form-1">
+                <div class="form-group">
+                    <label for="city_village_1"><i class="fa-solid fa-location-dot"></i> City / Village</label>
+                    <select id="city_village_1" name="city_village_1" required>
+                        <!-- Options copied from main form -->
+                        <optgroup label="Metros & High-Growth IT Corridors">
+                            <option value="Bengaluru - Indiranagar">Bengaluru - Indiranagar (KA)</option>
+                            <option value="Mumbai - Bandra West" selected>Mumbai - Bandra West (MH)</option>
+                            <option value="Delhi - Vasant Kunj">Delhi - Vasant Kunj (NCR)</option>
+                            <option value="Gurugram - Golf Course Rd">Gurugram - Golf Course Rd (HR)</option>
+                            <option value="Hyderabad - Gachibowli">Hyderabad - Gachibowli (TS)</option>
+                            <option value="Pune - Baner">Pune - Baner (MH)</option>
+                        </optgroup>
+                        <optgroup label="Tier-2 & Tier-3 Cities">
+                            <option value="Chandigarh - Sector 17">Chandigarh - Sector 17</option>
+                            <option value="Ahmedabad - Bodakdev">Ahmedabad - Bodakdev (GJ)</option>
+                            <option value="Jaipur - Vaishali Nagar">Jaipur - Vaishali Nagar (RJ)</option>
+                            <option value="Kochi - Edappally">Kochi - Edappally (KL)</option>
+                            <option value="Lucknow - Gomti Nagar">Lucknow - Gomti Nagar (UP)</option>
+                        </optgroup>
+                        <optgroup label="Towns & Rural Villages">
+                            <option value="Baramati Town (MH)">Baramati Town (Maharashtra)</option>
+                            <option value="Rampur (UP)">Rampur (Uttar Pradesh)</option>
+                            <option value="Palampur Village (HP)">Palampur Village (Himachal Pradesh)</option>
+                            <option value="Mandya Village (KA)">Mandya Village (Karnataka)</option>
+                            <option value="Wayanad Village (KL)">Wayanad Village (Kerala)</option>
+                            <option value="Anakapalle (AP)">Anakapalle (Andhra Pradesh)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="area_sqyards_1"><i class="fa-solid fa-ruler-combined"></i> Area (Gaj)</label>
+                    <input type="range" id="area_sqyards_1" name="area_sqyards_1" min="50" max="650" step="5" value="200" oninput="document.getElementById('area-val-disp-1').innerText = `${this.value} Gaj (${(this.value*9).toLocaleString('en-IN')} sq ft)`">
+                    <div class="area-subtext"><small><i class="fa-solid fa-calculator"></i> 1 Gaj = 9 sq ft.</small></div>
+                    <span class="range-val" id="area-val-disp-1">200 Gaj (1,800 sq ft)</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bedrooms_1"><i class="fa-solid fa-bed"></i> Bedrooms</label>
+                        <select id="bedrooms_1" name="bedrooms_1" required>
+                            <option value="1">1 BHK</option>
+                            <option value="2">2 BHK</option>
+                            <option value="3" selected>3 BHK</option>
+                            <option value="4">4 BHK</option>
+                            <option value="5">5+ BHK</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bathrooms_1"><i class="fa-solid fa-bath"></i> Bathrooms</label>
+                        <select id="bathrooms_1" name="bathrooms_1" required>
+                            <option value="1.0">1 Bathroom</option>
+                            <option value="2.0">2 Bathrooms</option>
+                            <option value="3.0" selected>3 Bathrooms</option>
+                            <option value="4.0">4 Bathrooms</option>
+                            <option value="5.0">5+ Bathrooms</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="floors_1"><i class="fa-solid fa-layer-group"></i> Floors</label>
+                        <select id="floors_1" name="floors_1" required>
+                            <option value="1">1 Story</option>
+                            <option value="2" selected>2 Stories</option>
+                            <option value="3">3 Stories</option>
+                            <option value="4">4+ Stories</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="year_built_1"><i class="fa-solid fa-calendar-days"></i> Year Built</label>
+                        <input type="number" id="year_built_1" name="year_built_1" min="1960" max="2026" value="2021" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="parking_1"><i class="fa-solid fa-square-parking"></i> Parking</label>
+                        <select id="parking_1" name="parking_1" required>
+                            <option value="None">No Dedicated Parking</option>
+                            <option value="Two-Wheeler Only">Two-Wheeler Only</option>
+                            <option value="Covered Car Park" selected>Covered Car Park</option>
+                            <option value="Private Multi-Car Garage">Private Multi-Car Garage</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="condition_1"><i class="fa-solid fa-gem"></i> Condition</label>
+                        <select id="condition_1" name="condition_1" required>
+                            <option value="Fixer-Upper / Old">Fixer-Upper / Old</option>
+                            <option value="Standard / Semi-Furnished">Standard / Semi-Furnished</option>
+                            <option value="Good / Well Maintained">Good / Well Maintained</option>
+                            <option value="Fully Furnished / Renovated" selected>Fully Furnished / Renovated</option>
+                            <option value="Luxury Villa / Ultra-Modern">Luxury Villa / Ultra-Modern</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- Property 2 Form (same fields with suffix _2) -->
+        <div class="glass-card form-card">
+            <div class="card-title"><i class="fa-solid fa-home"></i><h2>Property 2</h2></div>
+            <form class="compare-form" id="compare-form-2"></form>
+        </div>
+        <!-- Property 3 Form (same fields with suffix _3) -->
+        <div class="glass-card form-card">
+            <div class="card-title"><i class="fa-solid fa-home"></i><h2>Property 3</h2></div>
+            <form class="compare-form" id="compare-form-3"></form>
+        </div>
+    </div>
+    <button class="submit-btn" id="compare-submit-btn" onclick="handleCompare(event)">Compare Properties</button>
+    <div class="glass-card result-card margin-top-2" id="compare-result" class="hidden">
+        <div class="card-title"><i class="fa-solid fa-code-compare"></i><h2>Comparison Results</h2></div>
+        <div id="compare-table" class="compare-table"></div>
+        <canvas id="compare-chart" height="200"></canvas>
+    </div>
+</section>
+
+        <!-- MACHINE LEARNING DASHBOARD SECTION -->
+        <section id="dashboard-section" class="tab-content hidden">
+            <div class="hero-header">
+                <h1>Indian Real Estate ML Analytics</h1>
+                <p>Exploratory Data Analysis across Indian Metropolitan Cities, Tier-2 Towns, and Villages.</p>
+            </div>
+
+            <!-- Dashboard Charts Grid -->
+            <div class="dashboard-grid">
+                
+                <!-- Chart 1: Average Price by Indian City / Village -->
+                <div class="glass-card chart-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <h2>Average House Price by City / Village (₹)</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-price-loc"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: House Price vs Area in Square Yards (Gaj) -->
+                <div class="glass-card chart-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-ruler-combined"></i>
+                        <h2>House Price vs Area (Square Yards - Gaj)</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-price-area"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Distribution of House Prices -->
+                <div class="glass-card chart-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-chart-column"></i>
+                        <h2>Distribution of House Prices in India</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-price-dist"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Price vs Bedrooms (BHK) -->
+                <div class="glass-card chart-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-bed"></i>
+                        <h2>Average Price vs Configuration (BHK)</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-price-beds"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Actual vs Predicted Prices -->
+                <div class="glass-card chart-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-bullseye"></i>
+                        <h2>Actual vs Predicted Prices (Test Set)</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-actual-pred"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 6: Model Performance Comparison -->
+                <div class="glass-card chart-card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <h2>Model Performance Comparison (R² Score)</h2>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-model-comp"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Important Factors & Feature Importance Section -->
+            <div class="glass-card factors-card margin-top-2">
+                <div class="card-title">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <h2>Key Factors Influencing Indian House Prices</h2>
+                </div>
+
+                <p class="factors-intro">
+                    Feature importances learned by the trained <strong>Gradient Boosting Regressor</strong> on real Indian property metrics:
+                </p>
+
+                <!-- Feature Importance Progress Bars -->
+                <div class="importance-list" id="importance-list-container"></div>
+
+                <!-- Educational Explanations for Students -->
+                <div class="educational-section">
+                    <h3><i class="fa-solid fa-graduation-cap"></i> Student Guide: What Drives Indian Property Prices?</h3>
+                    <div class="edu-grid">
+                        <div class="edu-card">
+                            <div class="edu-icon"><i class="fa-solid fa-city"></i></div>
+                            <h4>1. Location Tier (Metro vs Village)</h4>
+                            <p>Metro IT hubs like <em>Mumbai Bandra</em> or <em>Bengaluru Indiranagar</em> command ₹1.2L–₹3.2L per Sq.Yard, while agricultural villages range from ₹9,000–₹14,000 per Sq.Yard.</p>
+                        </div>
+                        <div class="edu-card">
+                            <div class="edu-icon"><i class="fa-solid fa-ruler"></i></div>
+                            <h4>2. Area in Square Yards (Gaj)</h4>
+                            <p>Standard plot sizes in India (100 Gaj, 200 Gaj, 300 Gaj) define the base land cost before construction.</p>
+                        </div>
+                        <div class="edu-card">
+                            <div class="edu-icon"><i class="fa-solid fa-house-chimney"></i></div>
+                            <h4>3. Property Condition & Furnishing</h4>
+                            <p>Fully furnished renovated houses or luxury villas command 25%–55% higher values over standard or fixer-upper units.</p>
+                        </div>
+                        <div class="edu-card">
+                            <div class="edu-icon"><i class="fa-solid fa-car"></i></div>
+                            <h4>4. Covered Parking & Age</h4>
+                            <p>In congested Indian cities, dedicated covered parking garages add significant market value and buyer liquidity.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- PERFORMANCE METRICS SECTION -->
+        <section id="metrics-section" class="tab-content hidden">
+            <div class="hero-header">
+                <h1>Algorithm Benchmark Comparison</h1>
+                <p>Compare performance metrics across tested Scikit-learn regression algorithms.</p>
+            </div>
+
+            <div class="metrics-container">
+                <div class="metrics-header-card glass-card">
+                    <div class="best-model-banner">
+                        <div class="banner-icon"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="banner-text">
+                            <span>Top Performing Model</span>
+                            <h2 id="best-model-title">Gradient Boosting Regressor</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algorithm-grid" id="algorithm-cards-grid"></div>
+
+                <div class="glass-card metrics-info-card">
+                    <h3><i class="fa-solid fa-book-open"></i> Evaluation Metrics Guide</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>MAE (Mean Absolute Error)</strong>
+                            <p>Average absolute difference between predicted and actual house prices in ₹ INR.</p>
+                        </div>
+                        <div class="info-item">
+                            <strong>RMSE (Root Mean Squared Error)</strong>
+                            <p>Standard deviation of prediction residuals, penalizing larger valuation errors.</p>
+                        </div>
+                        <div class="info-item">
+                            <strong>R² Score (Coefficient of Determination)</strong>
+                            <p>Proportion of variance explained by features (1.0 = perfect accuracy).</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>House Price Prediction &copy; 2026 | Powered by Scikit-learn, Chart.js & Flask</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
